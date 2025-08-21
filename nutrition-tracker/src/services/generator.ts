@@ -1,4 +1,4 @@
-import { Meal } from '../types/meals'
+import type { Meal } from '../types/meals'
 
 const sampleMeals: Array<Omit<Meal, 'id' | 'createdAt' | 'updatedAt'>> = [
   { name: 'Chicken Rice Bowl', description: 'Grilled chicken, jasmine rice, broccoli', macros: { calories: 620, protein: 45, carbs: 68, fat: 17 }, tags: ['lunch','high-protein'] },

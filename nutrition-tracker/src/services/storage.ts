@@ -1,4 +1,4 @@
-import { Meal, MealLog } from '../types/meals'
+import type { Meal, MealLog } from '../types/meals'
 
 const MEALS_KEY = 'meals_v1'
 const LOGS_KEY = 'meal_logs_v1'

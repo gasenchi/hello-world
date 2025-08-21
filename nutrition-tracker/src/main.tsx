@@ -11,6 +11,10 @@ import Meals from './pages/Meals.tsx'
 import History from './pages/History.tsx'
 import Progress from './pages/Progress.tsx'
 import Goals from './pages/Goals.tsx'
+import { AuthProvider } from './context/AuthContext.tsx'
+import RequireAuth from './components/RequireAuth.tsx'
+import Login from './pages/Login.tsx'
+import Signup from './pages/Signup.tsx'
 
 const theme = createTheme({
   palette: {
@@ -39,16 +43,22 @@ createRoot(document.getElementById('root')!).render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<App />}> 
-              <Route index element={<Dashboard />} />
-              <Route path="macros" element={<Macros />} />
-              <Route path="meals" element={<Meals />} />
-              <Route path="history" element={<History />} />
-              <Route path="progress" element={<Progress />} />
-              <Route path="goals" element={<Goals />} />
-            </Route>
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route element={<RequireAuth />}>
+                <Route path="/" element={<App />}> 
+                  <Route index element={<Dashboard />} />
+                  <Route path="macros" element={<Macros />} />
+                  <Route path="meals" element={<Meals />} />
+                  <Route path="history" element={<History />} />
+                  <Route path="progress" element={<Progress />} />
+                  <Route path="goals" element={<Goals />} />
+                </Route>
+              </Route>
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
