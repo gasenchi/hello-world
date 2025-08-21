@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard.tsx'
 import Macros from './pages/Macros.tsx'
 import Meals from './pages/Meals.tsx'
 import History from './pages/History.tsx'
+import Progress from './pages/Progress.tsx'
+import Goals from './pages/Goals.tsx'
 
 const theme = createTheme({
   palette: {
@@ -43,6 +45,8 @@ createRoot(document.getElementById('root')!).render(
               <Route path="macros" element={<Macros />} />
               <Route path="meals" element={<Meals />} />
               <Route path="history" element={<History />} />
+              <Route path="progress" element={<Progress />} />
+              <Route path="goals" element={<Goals />} />
             </Route>
           </Routes>
         </BrowserRouter>

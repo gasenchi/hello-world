@@ -2,6 +2,8 @@ import { useMemo, type PropsWithChildren } from 'react'
 import { AppBar, BottomNavigation, BottomNavigationAction, Box, Container, Toolbar, Typography } from '@mui/material'
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded'
 import PieChartRoundedIcon from '@mui/icons-material/PieChartRounded'
+import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded'
+import FlagRoundedIcon from '@mui/icons-material/FlagRounded'
 import RestaurantRoundedIcon from '@mui/icons-material/RestaurantRounded'
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -14,6 +16,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
     if (location.pathname.startsWith('/macros')) return 'macros'
     if (location.pathname.startsWith('/meals')) return 'meals'
     if (location.pathname.startsWith('/history')) return 'history'
+    if (location.pathname.startsWith('/progress')) return 'progress'
+    if (location.pathname.startsWith('/goals')) return 'goals'
     return 'dashboard'
   }, [location.pathname])
 
@@ -50,6 +54,12 @@ export default function AppLayout({ children }: PropsWithChildren) {
               case 'history':
                 navigate('/history')
                 break
+              case 'progress':
+                navigate('/progress')
+                break
+              case 'goals':
+                navigate('/goals')
+                break
             }
           }}
           showLabels
@@ -58,6 +68,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
           <BottomNavigationAction label="Macros" value="macros" icon={<PieChartRoundedIcon />} />
           <BottomNavigationAction label="Meals" value="meals" icon={<RestaurantRoundedIcon />} />
           <BottomNavigationAction label="History" value="history" icon={<HistoryRoundedIcon />} />
+          <BottomNavigationAction label="Progress" value="progress" icon={<TimelineRoundedIcon />} />
+          <BottomNavigationAction label="Goals" value="goals" icon={<FlagRoundedIcon />} />
         </BottomNavigation>
       </Box>
     </Box>
