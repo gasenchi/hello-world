@@ -98,7 +98,9 @@ async function processRawUpload(objectKey: string) {
 }
 
 async function ensureVideoForKey(objectKey: string): Promise<string> {
-  const v = await prisma.video.create({ data: { creatorId: (await ensureUser()).id, caption: 'Upload', status: VideoStatus.UPLOADING } });
+  const existing = await prisma.video.findFirst({ where: { uploadKey: objectKey } });
+  if (existing) return existing.id;
+  const v = await prisma.video.create({ data: { creatorId: (await ensureUser()).id, caption: 'Upload', status: VideoStatus.UPLOADING, uploadKey: objectKey } });
   return v.id;
 }
 
