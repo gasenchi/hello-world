@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "ForYouApp",
+    "slug": "for-you-app",
+    "scheme": "foryou",
+    "version": "1.0.0",
+    "sdkVersion": "51.0.0",
+    "platforms": ["ios", "android"]
+  }
+}

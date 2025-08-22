@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VideoStatus {
+  UPLOADING
+  READY
+  BLOCKED
+}
+
+enum UserEventType {
+  VIEW
+  LIKE
+  COMMENT
+  SHARE
+  FOLLOW_AFTER_VIEW
+  NOT_INTERESTED
+  REWATCH
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  displayName  String
+  bio          String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  videos       Video[]
+  likes        Like[]
+  comments     Comment[]
+  shares       Share[]
+  views        View[]
+  events       UserEvent[]
+
+  followers    Follow[] @relation("followers")
+  following    Follow[] @relation("following")
+
+  blocksGiven  UserBlock[] @relation("blocksGiven")
+  blocksTaken  UserBlock[] @relation("blocksTaken")
+  mutesGiven   UserMute[]  @relation("mutesGiven")
+  mutesTaken   UserMute[]  @relation("mutesTaken")
+  reportsMade  Report[]    @relation("ReportsMade")
+  reportsRecv  Report[]    @relation("ReportsReceived")
+}
+
+model Follow {
+  id           String   @id @default(cuid())
+  follower     User     @relation("following", fields: [followerId], references: [id])
+  followerId   String
+  following    User     @relation("followers", fields: [followingId], references: [id])
+  followingId  String
+  createdAt    DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model UserBlock {
+  id         String @id @default(cuid())
+  blocker    User   @relation("blocksGiven", fields: [blockerId], references: [id])
+  blockerId  String
+  blocked    User   @relation("blocksTaken", fields: [blockedId], references: [id])
+  blockedId  String
+  createdAt  DateTime @default(now())
+  reason     String   @default("")
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model UserMute {
+  id        String @id @default(cuid())
+  muter     User   @relation("mutesGiven", fields: [muterId], references: [id])
+  muterId   String
+  muted     User   @relation("mutesTaken", fields: [mutedId], references: [id])
+  mutedId   String
+  createdAt DateTime @default(now())
+
+  @@unique([muterId, mutedId])
+  @@index([muterId])
+  @@index([mutedId])
+}
+
+model Sound {
+  id             String   @id @default(cuid())
+  title          String
+  originalVideo  Video?   @relation("OriginalVideoSound", fields: [originalVideoId], references: [id])
+  originalVideoId String? @unique
+  durationSec    Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  videos         Video[]
+}
+
+model Video {
+  id               String      @id @default(cuid())
+  creator          User        @relation(fields: [creatorId], references: [id])
+  creatorId        String
+  sound            Sound?      @relation(fields: [soundId], references: [id])
+  soundId          String?
+  originalOfSound  Sound?      @relation("OriginalVideoSound")
+  caption          String      @default("")
+  status           VideoStatus @default(UPLOADING)
+  eligibleForFeed  Boolean     @default(true)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  assets           VideoAsset[]
+  hashtags         VideoHashtag[]
+  likes            Like[]
+  comments         Comment[]
+  shares           Share[]
+  views            View[]
+  events           UserEvent[]
+  reports          Report[]    @relation("VideoReports")
+
+  @@index([status])
+  @@index([eligibleForFeed])
+  @@index([createdAt])
+  @@index([creatorId])
+  @@index([soundId])
+}
+
+model VideoAsset {
+  id        String   @id @default(cuid())
+  video     Video    @relation(fields: [videoId], references: [id])
+  videoId   String
+  kind      String
+  objectKey String
+  createdAt DateTime @default(now())
+
+  @@unique([videoId, kind])
+  @@index([videoId])
+}
+
+model Hashtag {
+  id        String   @id @default(cuid())
+  tag       String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  videos    VideoHashtag[]
+}
+
+model VideoHashtag {
+  video    Video   @relation(fields: [videoId], references: [id])
+  videoId  String
+  hashtag  Hashtag @relation(fields: [hashtagId], references: [id])
+  hashtagId String
+
+  @@id([videoId, hashtagId])
+  @@index([hashtagId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  video     Video    @relation(fields: [videoId], references: [id])
+  videoId   String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, videoId])
+  @@index([videoId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  video     Video    @relation(fields: [videoId], references: [id])
+  videoId   String
+  text      String
+  createdAt DateTime @default(now())
+
+  @@index([videoId])
+}
+
+model Share {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  video     Video    @relation(fields: [videoId], references: [id])
+  videoId   String
+  channel   String   @default("system")
+  createdAt DateTime @default(now())
+
+  @@index([videoId])
+}
+
+model View {
+  id         String   @id @default(cuid())
+  user       User?    @relation(fields: [userId], references: [id])
+  userId     String?
+  video      Video    @relation(fields: [videoId], references: [id])
+  videoId    String
+  watchPct   Float    @default(0)
+  rewatched  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([videoId])
+  @@index([userId])
+}
+
+model UserEvent {
+  id        String        @id @default(cuid())
+  user      User?         @relation(fields: [userId], references: [id])
+  userId    String?
+  video     Video         @relation(fields: [videoId], references: [id])
+  videoId   String
+  type      UserEventType
+  value     Float?        // e.g., watchPct
+  createdAt DateTime      @default(now())
+
+  @@index([videoId])
+  @@index([userId])
+  @@index([type])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  reporter  User?    @relation("ReportsMade", fields: [reporterId], references: [id])
+  reporterId String?
+  video     Video?   @relation("VideoReports", fields: [videoId], references: [id])
+  videoId   String?
+  targetUser User?   @relation("ReportsReceived", fields: [targetUserId], references: [id])
+  targetUserId String?
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([videoId])
+  @@index([targetUserId])
+}
