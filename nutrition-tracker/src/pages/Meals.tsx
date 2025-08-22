@@ -10,7 +10,8 @@ import MealDetailDialog from '../components/meals/MealDetailDialog'
 import LogMealDialog from '../components/meals/LogMealDialog'
 import { useMeals } from '../hooks/useMeals'
 import { mockGenerateMeals } from '../services/generator'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { useToast } from '../context/ToastContext'
 
 export default function Meals() {
 	const { meals, upsertMeal, deleteMeal, logMeal, todayTotals } = useMeals()
@@ -20,14 +21,27 @@ export default function Meals() {
 	const [detailMeal, setDetailMeal] = useState<Meal | null>(null)
 	const [openLog, setOpenLog] = useState(false)
 	const [logTarget, setLogTarget] = useState<Meal | null>(null)
+	const lastDeleted = useRef<Meal | null>(null)
+	const { success, undo } = useToast()
 
 	const createNew = () => { setEditing(null); setOpenForm(true) }
-	const onSaveMeal = (meal: Meal) => { upsertMeal(meal); setOpenForm(false) }
+	const onSaveMeal = (meal: Meal) => { upsertMeal(meal); setOpenForm(false); success('Meal saved') }
 
 	const onQuickGenerate = () => {
-		// In future, pull real goal; use 'fitness' now
 		const generated = mockGenerateMeals('fitness', 3)
 		generated.forEach((m: Meal) => upsertMeal(m))
+		success('Meals generated')
+	}
+
+	const onDelete = (m: Meal) => {
+		lastDeleted.current = m
+		deleteMeal(m.id)
+		undo('Meal deleted', () => {
+			if (lastDeleted.current) {
+				upsertMeal(lastDeleted.current)
+				lastDeleted.current = null
+			}
+		})
 	}
 
 	return (
@@ -55,22 +69,22 @@ export default function Meals() {
 								<ListItem key={m.id} alignItems="flex-start" sx={{ px: 0 }} secondaryAction={
 									<Stack direction="row" spacing={0.5}>
 										<Tooltip title="View">
-											<IconButton onClick={() => { setDetailMeal(m); setOpenDetail(true) }}>
+											<IconButton aria-label="View meal details" onClick={() => { setDetailMeal(m); setOpenDetail(true) }}>
 												<PlayArrowRoundedIcon />
 											</IconButton>
 										</Tooltip>
 										<Tooltip title="Log">
-											<IconButton onClick={() => { setLogTarget(m); setOpenLog(true) }}>
+											<IconButton aria-label="Log meal" onClick={() => { setLogTarget(m); setOpenLog(true) }}>
 												<BoltRoundedIcon />
 											</IconButton>
 										</Tooltip>
 										<Tooltip title="Edit">
-											<IconButton onClick={() => { setEditing(m); setOpenForm(true) }}>
+											<IconButton aria-label="Edit meal" onClick={() => { setEditing(m); setOpenForm(true) }}>
 												<EditRoundedIcon />
 											</IconButton>
 										</Tooltip>
 										<Tooltip title="Delete">
-											<IconButton color="error" onClick={() => deleteMeal(m.id)}>
+											<IconButton aria-label="Delete meal" color="error" onClick={() => onDelete(m)}>
 												<DeleteRoundedIcon />
 											</IconButton>
 										</Tooltip>
@@ -101,8 +115,8 @@ export default function Meals() {
 			</Card>
 
 			<MealFormDialog open={openForm} meal={editing} onClose={() => setOpenForm(false)} onSave={onSaveMeal} />
-			<MealDetailDialog open={openDetail} meal={detailMeal} onClose={() => setOpenDetail(false)} onDelete={(id) => { deleteMeal(id); setOpenDetail(false) }} />
-			<LogMealDialog open={openLog} onClose={() => setOpenLog(false)} onSave={(quantity, whenISO) => { if (logTarget) { logMeal(logTarget, quantity, whenISO); setOpenLog(false) } }} />
+			<MealDetailDialog open={openDetail} meal={detailMeal} onClose={() => setOpenDetail(false)} onDelete={(id) => { const m = meals.find(x => x.id === id); if (m) onDelete(m); setOpenDetail(false) }} />
+			<LogMealDialog open={openLog} onClose={() => setOpenLog(false)} onSave={(quantity, whenISO) => { if (logTarget) { logMeal(logTarget, quantity, whenISO); setOpenLog(false); success('Meal logged') } }} />
 		</Stack>
 	)
 }
